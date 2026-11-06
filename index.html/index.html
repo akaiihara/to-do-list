@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My To Do List</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f3f0f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .todo-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 450px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(106, 27, 154, 0.15);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4a148c, #7b1fa2);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .add-box {
+            display: flex;
+            padding: 15px 20px;
+            background-color: #f8f4fc;
+            border-bottom: 1px solid #e1d5e7;
+            gap: 10px;
+        }
+
+        .add-box input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid #ce93d8;
+            border-radius: 6px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .add-box input:focus {
+            border-color: #7b1fa2;
+        }
+
+        .add-box button {
+            background-color: #8e24aa;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .add-box button:hover {
+            background-color: #6a1b9a;
+        }
+
+        .todo-list {
+            list-style: none;
+        }
+
+        .todo-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            font-size: 15px;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s, opacity 0.2s;
+        }
+
+        /* Чередование фиолетовых оттенков */
+        .todo-item:nth-child(odd) {
+            background-color: #f3e5f5;
+        }
+
+        .todo-item:nth-child(even) {
+            background-color: #e1bee7;
+        }
+
+        .todo-item:hover {
+            filter: brightness(0.97);
+        }
+
+        /* Выполненные задачи (серый фон, зачеркнутый текст) */
+        .todo-item.completed {
+            background-color: #e0e0e0 !important;
+            color: #757575;
+            text-decoration: line-through;
+        }
+
+        .todo-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .checkbox {
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .close-btn {
+            color: #e53935;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: #ffebee;
+            color: #b71c1c;
+        }
+    </style>
+</head>
+<body>
+
+<div class="todo-card">
+    <div class="header">
+        <h2>My To Do List</h2>
+    </div>
+
+    <div class="add-box">
+        <input type="text" id="taskInput" placeholder="Добавить новую задачу...">
+        <button id="addBtn">Добавить</button>
+    </div>
+
+    <ul class="todo-list" id="todoList"></ul>
+</div>
+
+<script>
+    // Начальный список задач из задания
+    const defaultTasks = [
+        { text: "Hit the gym", completed: true },
+        { text: "Pay bills", completed: false },
+        { text: "Meet John", completed: true },
+        { text: "Buy eggs", completed: false },
+        { text: "Read a book", completed: true },
+        { text: "Organize office", completed: false },
+        { text: "Eat dinner", completed: false },
+        { text: "Buy apples", completed: false },
+        { text: "Meet George", completed: false },
+        { text: "Feed the cat", completed: false },
+        { text: "Write a letter", completed: false },
+        { text: "Run 1 km", completed: false }
+    ];
+
+    // Загрузка сохраненных задач или вызов базовых
+    let tasks = JSON.parse(localStorage.getItem('my_purple_todos')) || defaultTasks;
+
+    const todoList = document.getElementById('todoList');
+    const taskInput = document.getElementById('taskInput');
+    const addBtn = document.getElementById('addBtn');
+
+    // Функция сохранения в локальное хранилище
+    function saveTasks() {
+        localStorage.setItem('my_purple_todos', JSON.stringify(tasks));
+    }
+
+    // Отрисовка списка
+    function renderTasks() {
+        todoList.innerHTML = '';
+        
+        tasks.forEach((task, index) => {
+            const li = document.createElement('li');
+            li.className = `todo-item ${task.completed ? 'completed' : ''}`;
+            
+            // Клик по строке переключает статус задачи
+            li.onclick = (e) => {
+                if (!e.target.classList.contains('close-btn')) {
+                    toggleTask(index);
+                }
+            };
+
+            li.innerHTML = `
+                <div class="todo-left">
+                    <span class="checkbox">${task.completed ? '☑' : '☐'}</span>
+                    <span>${task.text}</span>
+                </div>
+                <span class="close-btn" onclick="deleteTask(event, ${index})">&times;</span>
+            `;
+
+            todoList.appendChild(li);
+        });
+    }
+
+    // Переключение выполненности задачи
+    function toggleTask(index) {
+        tasks[index].completed = !tasks[index].completed;
+        saveTasks();
+        renderTasks();
+    }
+
+    // Удаление задачи
+    function deleteTask(event, index) {
+        event.stopPropagation(); // предотвращаем клик по li
+        tasks.splice(index, 1);
+        saveTasks();
+        renderTasks();
+    }
+
+    // Добавление новой задачи
+    function addTask() {
+        const text = taskInput.value.trim();
+        if (text !== '') {
+            tasks.push({ text: text, completed: false });
+            taskInput.value = '';
+            saveTasks();
+            renderTasks();
+        }
+    }
+
+    // Обработчики событий для кнопки и клавиши Enter
+    addBtn.addEventListener('click', addTask);
+    taskInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            addTask();
+        }
+    });
+
+    // Первоначальный рендер
+    renderTasks();
+</script>
+
+</body>
+</html>
